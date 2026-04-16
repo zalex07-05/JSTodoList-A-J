@@ -9,6 +9,7 @@ export default class Model {
           title: 'Learn JS',
           description: 'Watch JS Tutorials',
           completed: false,
+          dueDate: new Date().toISOString().split('T')[0],
         }
       ]
       this.currentId = 1;
@@ -46,12 +47,13 @@ export default class Model {
     this.save();
   }
 
-  addTodo(title, description) {
+  addTodo(title, description, dueDate) {
     const todo = {
       id: this.currentId++,
       title,
       description,
       completed: false,
+      dueDate,
     }
 
     this.todos.push(todo);

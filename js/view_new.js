@@ -5,8 +5,7 @@ import Filters from './components/filters.js';
 export default class View {
   constructor() {
     this.model = null;
-    this.tablePending = document.getElementById('table-pending');
-    this.tableCompleted = document.getElementById('table-completed');
+    this.table = document.getElementById('table');
     this.addTodoForm = new AddTodo();
     this.modal = new Modal();
     this.filters = new Filters();
@@ -17,10 +16,15 @@ export default class View {
     this.filters.onClick((filters) => this.filter(filters));
   }
 
+
+
   setModel(model) {
     this.model = model;
   }
 
+
+
+  
   render() {
     const todos = this.model.getTodos();
     todos.forEach((todo) => this.createRow(todo));
@@ -28,11 +32,8 @@ export default class View {
 
   filter(filters) {
     const { type, words } = filters;
-    const [, ...rowsPending] = this.tablePending.getElementsByTagName('tr');
-    const [, ...rowsCompleted] = this.tableCompleted.getElementsByTagName('tr');
-    const allRows = [...rowsPending, ...rowsCompleted];
-    
-    for (const row of allRows) {
+    const [, ...rows] = this.table.getElementsByTagName('tr');
+    for (const row of rows) {
       const [title, description, , , completed] = row.children;
       let shouldHide = false;
 
@@ -62,40 +63,6 @@ export default class View {
 
   toggleCompleted(id) {
     this.model.toggleCompleted(id);
-    const row = document.getElementById(id);
-    const isCompleted = row.children[4].children[0].checked;
-    const table = isCompleted ? this.tableCompleted : this.tablePending;
-    
-    if (isCompleted) {
-      row.classList.remove('overdue');
-    } else if (this.isOverdue(row.children[2].innerText)) {
-      row.classList.add('overdue');
-    }
-    
-    // Move row to the appropriate table
-    const newRow = row.cloneNode(true);
-    this.attachRowListeners(newRow);
-    table.getElementsByTagName('tbody')[0].appendChild(newRow);
-    row.remove();
-  }
-
-  attachRowListeners(row) {
-    const id = row.getAttribute('id');
-    const checkbox = row.children[4].children[0];
-    const editBtn = row.children[5].children[0];
-    const removeBtn = row.children[5].children[1];
-    
-    checkbox.onclick = () => this.toggleCompleted(id);
-    
-    editBtn.onclick = () => this.modal.setValues({
-      id: id,
-      title: row.children[0].innerText,
-      description: row.children[1].innerText,
-      dueDate: row.children[2].innerText,
-      completed: checkbox.checked,
-    });
-    
-    removeBtn.onclick = () => this.removeTodo(id);
   }
 
   editTodo(id, values) {
@@ -103,16 +70,7 @@ export default class View {
     const row = document.getElementById(id);
     row.children[0].innerText = values.title;
     row.children[1].innerText = values.description;
-    row.children[2].innerText = values.dueDate;
-    const daysLeft = this.getDaysLeft(values.dueDate);
-    const daysLeftText = daysLeft < 0 ? `${Math.abs(daysLeft)} days overdue` : `${daysLeft} days left`;
-    row.children[3].innerText = daysLeftText;
     row.children[4].children[0].checked = values.completed;
-    if (values.completed) {
-      row.classList.remove('overdue');
-    } else if (this.isOverdue(values.dueDate)) {
-      row.classList.add('overdue');
-    }
   }
 
   removeTodo(id) {
@@ -135,8 +93,7 @@ export default class View {
   }
 
   createRow(todo) {
-    const table = todo.completed ? this.tableCompleted : this.tablePending;
-    const row = table.getElementsByTagName('tbody')[0].insertRow();
+    const row = table.insertRow();
     row.setAttribute('id', todo.id);
     const daysLeft = this.getDaysLeft(todo.dueDate);
     const daysLeftText = daysLeft < 0 ? `${Math.abs(daysLeft)} days overdue` : `${daysLeft} days left`;
@@ -154,7 +111,7 @@ export default class View {
       </td>
     `;
     
-    if (this.isOverdue(todo.dueDate) && !todo.completed) {
+    if (this.isOverdue(todo.dueDate)) {
       row.classList.add('overdue');
     }
 
@@ -173,7 +130,6 @@ export default class View {
       id: todo.id,
       title: row.children[0].innerText,
       description: row.children[1].innerText,
-      dueDate: row.children[2].innerText,
       completed: row.children[4].children[0].checked,
     });
     row.children[5].appendChild(editBtn);
