@@ -10,12 +10,10 @@ export default class View {
     this.modal = new Modal();
     this.filters = new Filters();
     
-
     this.addTodoForm.onClick((title, description, dueDate) => this.addTodo(title, description, dueDate));
     this.modal.onClick((id, values) => this.editTodo(id, values));
     this.filters.onClick((filters) => this.filter(filters));
   }
-
 
 
   setModel(model) {
